@@ -1,0 +1,21 @@
+name: thecreator
+description: A powerful CLI animation tool using Flutter's rendering engine with AI capabilities.
+version: 0.0.1
+
+environment:
+  sdk: ^3.7.0
+
+dependencies:
+  args: ^2.5.0
+  flutter:
+    sdk: flutter
+  http: ^1.1.0  # For API calls to AI models
+  path: ^1.8.3  # For file path handling
+  process_run: ^0.13.0  # For running ffmpeg and other processes
+
+dev_dependencies:
+  lints: ^5.0.0
+  test: ^1.24.0
+
+executables:
+  thecreator: thecreator
