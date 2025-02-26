@@ -1,5 +1,4 @@
 import 'dart:io';
-import 'package:args/args.dart';
 import 'package:args/command_runner.dart';
 import 'package:thecreator/commands/commands.dart';
 import 'package:thecreator/core/engine.dart';
@@ -10,33 +9,40 @@ void main(List<String> arguments) async {
   // Initialize the Flutter engine
   final engine = AnimationEngine();
   await engine.initialize();
-  
+
   // Set up the command runner with all available commands
   final runner = CommandRunner<int>(
     'thecreator',
-    'Flutter-powered animation generation CLI with AI integration'
-  )
-    ..addCommand(CreateCommand(engine))
-    ..addCommand(RenderCommand(engine))
-    ..addCommand(ExportCommand(engine))
-    ..addCommand(AIPromptCommand(engine))
-    ..addOption('verbose', abbr: 'v', help: 'Show additional command output')
-    ..addFlag('version', negatable: false, help: 'Print the tool version');
+    'Flutter-powered animation generation CLI with AI integration',
+  );
+
+  // Add commands
+  runner.addCommand(CreateCommand(engine));
+
+  // These commands will be implemented later
+  // Uncomment when their implementation files are available
+  // runner.addCommand(RenderCommand(engine));
+  // runner.addCommand(ExportCommand(engine));
+  // runner.addCommand(AIPromptCommand(engine));
 
   try {
-    // Parse global options first
-    final argResults = runner.argParser.parse(arguments);
-    
-    if (argResults['version']) {
+    // Handle global flags
+    final topLevelResults = runner.parse(arguments);
+
+    if (topLevelResults['version'] == true) {
       print('thecreator version: $version');
       await engine.shutdown();
       exit(0);
     }
-    
+
     // Run the command
-    await runner.run(arguments);
+    await runner.runCommand(topLevelResults);
     await engine.shutdown();
     exit(0);
+  } on UsageException catch (e) {
+    print(e);
+    await engine.shutdown();
+    exit(64); // Exit code 64 indicates command line usage error
   } catch (e) {
     print('Error: $e');
     await engine.shutdown();
