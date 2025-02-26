@@ -5,45 +5,57 @@ import 'package:thecreator/core/engine.dart';
 
 const String version = '0.0.1';
 
-void main(List<String> arguments) async {
+Future<void> main(List<String> arguments) async {
   // Initialize the Flutter engine
   final engine = AnimationEngine();
   await engine.initialize();
-
-  // Set up the command runner with all available commands
-  final runner =
-      CommandRunner<int>(
-          'thecreator',
-          'Flutter-powered animation generation CLI with AI integration',
-        )
-        ..argParser.addFlag(
-          'version',
-          negatable: false,
-          help: 'Print the tool version.',
-        )
-        ..argParser.addFlag(
-          'verbose',
-          abbr: 'v',
-          negatable: false,
-          help: 'Show additional command output.',
-        );
-
-  // Add commands
-  runner.addCommand(CreateCommand(engine));
-  runner.addCommand(RenderCommand(engine));
-  runner.addCommand(ExportCommand(engine));
-  runner.addCommand(AIPromptCommand(engine));
-
+  
   try {
-    final results = await runner.run(arguments);
+    // Create command runner
+    final runner = CommandRunner<int>(
+      'thecreator',
+      'Flutter-powered animation generation CLI with AI integration',
+    );
+    
+    // Add version and verbose flags
+    runner.argParser.addFlag(
+      'version',
+      negatable: false,
+      help: 'Print the tool version.',
+    );
+    
+    runner.argParser.addFlag(
+      'verbose',
+      abbr: 'v',
+      negatable: false,
+      help: 'Show additional command output.',
+    );
+    
+    // Add commands
+    runner.addCommand(CreateCommand(engine));
+    runner.addCommand(RenderCommand(engine));
+    runner.addCommand(ExportCommand(engine));
+    runner.addCommand(AIPromptCommand(engine));
+    
+    // Check for global flags first
+    final globalResults = runner.argParser.parse(arguments);
+    if (globalResults['version'] == true) {
+      print('thecreator version: $version');
+      await engine.shutdown();
+      exit(0);
+    }
+    
+    // Run the command
+    final exitCode = await runner.run(arguments);
     await engine.shutdown();
-    exit(results ?? 0);
+    exit(exitCode ?? 0);
   } on UsageException catch (e) {
     print(e);
     await engine.shutdown();
     exit(64);
-  } catch (e) {
+  } catch (e, stackTrace) {
     print('Error: $e');
+    print('Stack trace: $stackTrace');
     await engine.shutdown();
     exit(1);
   }
