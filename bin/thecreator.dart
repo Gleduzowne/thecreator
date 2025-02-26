@@ -11,38 +11,37 @@ void main(List<String> arguments) async {
   await engine.initialize();
 
   // Set up the command runner with all available commands
-  final runner = CommandRunner<int>(
-    'thecreator',
-    'Flutter-powered animation generation CLI with AI integration',
-  );
+  final runner =
+      CommandRunner<int>(
+          'thecreator',
+          'Flutter-powered animation generation CLI with AI integration',
+        )
+        ..argParser.addFlag(
+          'version',
+          negatable: false,
+          help: 'Print the tool version.',
+        )
+        ..argParser.addFlag(
+          'verbose',
+          abbr: 'v',
+          negatable: false,
+          help: 'Show additional command output.',
+        );
 
   // Add commands
   runner.addCommand(CreateCommand(engine));
-
-  // These commands will be implemented later
-  // Uncomment when their implementation files are available
-  // runner.addCommand(RenderCommand(engine));
-  // runner.addCommand(ExportCommand(engine));
-  // runner.addCommand(AIPromptCommand(engine));
+  runner.addCommand(RenderCommand(engine));
+  runner.addCommand(ExportCommand(engine));
+  runner.addCommand(AIPromptCommand(engine));
 
   try {
-    // Handle global flags
-    final topLevelResults = runner.parse(arguments);
-
-    if (topLevelResults['version'] == true) {
-      print('thecreator version: $version');
-      await engine.shutdown();
-      exit(0);
-    }
-
-    // Run the command
-    await runner.runCommand(topLevelResults);
+    final results = await runner.run(arguments);
     await engine.shutdown();
-    exit(0);
+    exit(results ?? 0);
   } on UsageException catch (e) {
     print(e);
     await engine.shutdown();
-    exit(64); // Exit code 64 indicates command line usage error
+    exit(64);
   } catch (e) {
     print('Error: $e');
     await engine.shutdown();

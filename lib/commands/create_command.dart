@@ -15,13 +15,9 @@ class CreateCommand extends Command<int> {
   final String description = 'Create a new animation project';
 
   CreateCommand(this.engine) {
+    // Update argument parsing to handle both named and positional arguments
     argParser
-      ..addOption(
-        'name',
-        abbr: 'n',
-        help: 'Name of the animation project',
-        mandatory: true,
-      )
+      ..addOption('name', abbr: 'n', help: 'Name of the animation project')
       ..addOption(
         'width',
         help: 'Width of the animation in pixels',
@@ -38,7 +34,21 @@ class CreateCommand extends Command<int> {
 
   @override
   Future<int> run() async {
-    final projectName = argResults!['name'] as String;
+    String projectName;
+
+    // Handle both named and positional arguments
+    if (argResults!.rest.isNotEmpty) {
+      projectName = argResults!.rest.first;
+    } else if (argResults!['name'] != null) {
+      projectName = argResults!['name'];
+    } else {
+      print(
+        'Error: Project name is required. Use --name option or provide as argument.',
+      );
+      printUsage();
+      return 64;
+    }
+
     final width = int.parse(argResults!['width'] as String);
     final height = int.parse(argResults!['height'] as String);
     final fps = int.parse(argResults!['fps'] as String);
